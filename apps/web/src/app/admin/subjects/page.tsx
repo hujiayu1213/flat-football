@@ -40,6 +40,7 @@ export default function AdminSubjectsPage() {
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [adminPhone, setAdminPhone] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -49,6 +50,9 @@ export default function AdminSubjectsPage() {
         if (response.status === 403) { setView("unauthorized"); return; }
         if (!response.ok) throw new Error();
         setSubjects(await response.json() as ManagedSubject[]);
+        const me = await fetch("/api/auth/me", { credentials: "same-origin" });
+        if (!me.ok) throw new Error();
+        setAdminPhone((await me.json() as { phone: string }).phone);
         setView("ready");
       } catch { setView("error"); }
     }
@@ -85,6 +89,7 @@ export default function AdminSubjectsPage() {
 
   async function decide(decision: "approved" | "changes_requested" | "rejected") {
     if (!detail) return;
+    if (detail.phone === adminPhone) { setMessage("不能审核自己的申请，请换用另一位管理员账号。"); return; }
     if (decision !== "approved" && !note.trim()) { setMessage("退回或拒绝时请填写具体原因"); return; }
     setBusy(true); setMessage("");
     try {
@@ -169,11 +174,14 @@ export default function AdminSubjectsPage() {
                   alt="体育资质证明" width={480} height={300} /><figcaption>体育资质证明</figcaption></figure>)}</div></>}
               <p className="form-hint">通过后替换老师当前可约服务；已有预约按原价格和时长保留。</p>
               {detail.reviewNote && <p className="review-note">审核备注：{detail.reviewNote}</p>}
-              {detail.status === "submitted" && <div className="review-actions"><label>审核备注
+              {detail.status === "submitted" && <div className="review-actions">
+                {detail.phone === adminPhone && <p className="notice" role="alert">这是当前管理员账号提交的申请。请使用另一位管理员账号审核，以保留独立审核。</p>}
+                <label>审核备注
                 <textarea maxLength={1000} rows={3} value={note} onChange={(event) => setNote(event.target.value)} placeholder="退回或拒绝时请说明具体原因" /></label>
-                <div><button className="button button-primary" type="button" disabled={busy} onClick={() => void decide("approved")}>通过</button>
-                  <button className="button button-secondary" type="button" disabled={busy} onClick={() => void decide("changes_requested")}>退回补充</button>
-                  <button className="button button-danger" type="button" disabled={busy} onClick={() => void decide("rejected")}>拒绝</button></div></div>}
+                <div><button className="button button-primary" type="button" disabled={busy || detail.phone === adminPhone} onClick={() => void decide("approved")}>通过</button>
+                  <button className="button button-secondary" type="button" disabled={busy || detail.phone === adminPhone} onClick={() => void decide("changes_requested")}>退回补充</button>
+                  <button className="button button-danger" type="button" disabled={busy || detail.phone === adminPhone} onClick={() => void decide("rejected")}>拒绝</button></div>
+                {message && <p className="notice" role="alert">{message}</p>}</div>}
             </>}</div></div>}
       </section>
       <section className="admin-service-section" aria-labelledby="platform-service-heading">

@@ -38,6 +38,7 @@ export default function AdminPage() {
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [adminPhone, setAdminPhone] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -45,8 +46,9 @@ export default function AdminPage() {
         const me = await fetch("/api/auth/me", { credentials: "same-origin" });
         if (me.status === 401) { setView("login"); return; }
         if (!me.ok) throw new Error();
-        const account = await me.json() as { roles: string[] };
+        const account = await me.json() as { roles: string[]; phone: string };
         if (!account.roles.includes("admin")) { setView("unauthorized"); return; }
+        setAdminPhone(account.phone);
         const subjectsResponse = await fetch("/api/subjects");
         if (subjectsResponse.ok) setSubjects(await subjectsResponse.json() as Subject[]);
         setView("ready");
@@ -79,6 +81,7 @@ export default function AdminPage() {
 
   async function decide(decision: "approved" | "changes_requested" | "rejected") {
     if (!detail) return;
+    if (detail.phone === adminPhone) { setMessage("不能审核自己的申请，请换用另一位管理员账号。"); return; }
     if (decision !== "approved" && !note.trim()) { setMessage("退回或拒绝时请填写具体原因"); return; }
     setBusy(true); setMessage("");
     try {
@@ -106,7 +109,7 @@ export default function AdminPage() {
     {view === "ready" && <>
       <div className="admin-shortcuts"><Link href="/admin/subjects"><strong>服务管理与审核 →</strong><span>处理老师服务与价格调整；管理腰旗和家教上架状态</span></Link></div>
       <div className="admin-tabs" role="group" aria-label="审核状态">{statuses.map((item) => <button key={item.value} type="button" className={status === item.value ? "active" : ""} onClick={() => { setStatus(item.value); setDetail(null); setMessage(""); }}>{item.label}</button>)}</div>
-      {message && <p className="notice" role="status">{message}</p>}
+      {message && !detail && <p className="notice" role="status">{message}</p>}
       <div className="admin-layout"><section className="admin-queue" aria-label="审核申请列表">
         {queue.length === 0 ? <p className="notice">当前没有此状态的申请。</p> : queue.map((item) => <button className={detail?.id === item.id ? "admin-queue-item selected" : "admin-queue-item"} type="button" key={item.id} onClick={() => void openReview(item.id)}>
           <strong>{item.displayName}</strong><span>{item.type === "profile_change" ? "公开资料修改" : item.type === "qualification_change" ? "课程项目调整" : "初次入驻"} · {item.school}</span><small>提交于 {new Date(item.submittedAt).toLocaleString("zh-CN")}</small>
@@ -148,11 +151,13 @@ export default function AdminPage() {
             </figure>)}</div>
           </>}
           {detail.reviewNote && <p className="review-note">历史审核备注：{detail.reviewNote}</p>}
-          {detail.status === "submitted" && <div className="review-actions"><label>审核备注<textarea maxLength={1000} rows={3} value={note} onChange={(event) => setNote(event.target.value)} placeholder="退回或拒绝时请说明具体原因" /></label><div>
-            <button className="button button-primary" type="button" disabled={busy} onClick={() => void decide("approved")}>通过</button>
-            <button className="button button-secondary" type="button" disabled={busy} onClick={() => void decide("changes_requested")}>退回补充</button>
-            <button className="button button-danger" type="button" disabled={busy} onClick={() => void decide("rejected")}>拒绝</button>
-          </div></div>}
+          {detail.status === "submitted" && <div className="review-actions">
+            {detail.phone === adminPhone && <p className="notice" role="alert">这是当前管理员账号提交的申请。请使用另一位管理员账号审核，以保留独立审核。</p>}
+            <label>审核备注<textarea maxLength={1000} rows={3} value={note} onChange={(event) => setNote(event.target.value)} placeholder="退回或拒绝时请说明具体原因" /></label><div>
+            <button className="button button-primary" type="button" disabled={busy || detail.phone === adminPhone} onClick={() => void decide("approved")}>通过</button>
+            <button className="button button-secondary" type="button" disabled={busy || detail.phone === adminPhone} onClick={() => void decide("changes_requested")}>退回补充</button>
+            <button className="button button-danger" type="button" disabled={busy || detail.phone === adminPhone} onClick={() => void decide("rejected")}>拒绝</button>
+          </div>{message && <p className="notice" role="alert">{message}</p>}</div>}
         </>}
       </section></div>
     </>}

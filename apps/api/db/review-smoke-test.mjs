@@ -79,6 +79,11 @@ try {
   assert.equal((await request("/admin/verifications?status=submitted", teacher.token)).status, 403);
   assert.equal((await request(`/admin/verifications/${verificationId}/decision`, teacher.token,
     { method: "POST", body: JSON.stringify({ decision: "approved", note: "" }) })).status, 403);
+  await client.query("INSERT INTO user_roles (user_id, role) VALUES ($1, 'admin')", [teacher.userId]);
+  const selfReview = await request(`/admin/verifications/${verificationId}/decision`, teacher.token,
+    { method: "POST", body: JSON.stringify({ decision: "approved", note: "" }) });
+  assert.equal(selfReview.status, 403, "Administrator cannot approve their own application");
+  assert.equal((await client.query("SELECT status FROM verifications WHERE id=$1", [verificationId])).rows[0].status, "submitted");
 
   const queue = await request("/admin/verifications?status=submitted", admin.token);
   assert.equal(queue.status, 200);
@@ -100,7 +105,7 @@ try {
   assert.equal((await request("/teacher-application/me", teacher.token)).body.status, "approved");
   assert.equal((await request(`/admin/verifications/${verificationId}/decision`, admin.token,
     { method: "POST", body: JSON.stringify({ decision: "approved", note: "" }) })).status, 409);
-  console.log("PASS: submission stays hidden; only admin reviews proof and manually approves; approved teacher becomes public");
+  console.log("PASS: submission stays hidden; self-review is blocked; another admin can review proof and approve");
 } finally {
   if (connected) {
     if (verificationId) {
