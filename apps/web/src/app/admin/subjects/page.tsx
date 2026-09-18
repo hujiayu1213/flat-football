@@ -130,8 +130,8 @@ export default function AdminSubjectsPage() {
     <div className="page-heading"><p className="eyebrow">管理后台</p><h1>服务管理与审核</h1>
       <p>审核老师的腰旗与家教服务、价格调整，并管理平台开放的两项服务。</p></div>
     {view === "loading" && <p className="notice">正在加载服务管理…</p>}
-    {view === "login" && <p className="notice">请先 <Link href="/login">登录管理员账号</Link>，再返回此页审核。</p>}
-    {view === "unauthorized" && <p className="notice" role="alert">当前账号没有管理员权限。请使用已授权的管理员账号登录。</p>}
+    {view === "login" && <p className="notice">请先 <Link href="/admin/login">登录管理员账号</Link>，再返回此页审核。</p>}
+    {view === "unauthorized" && <p className="notice" role="alert">当前账号没有管理员权限。请<Link href="/admin/login">使用已授权的管理员手机号登录</Link>。</p>}
     {view === "error" && <p className="notice" role="alert">服务管理暂时无法加载，请稍后重试。</p>}
     {view === "ready" && <>
       {message && <p className="notice" role="status">{message}</p>}
