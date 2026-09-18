@@ -1,0 +1,12 @@
+{
+  "name": "campus-tutor-platform",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev:web": "npm run dev -w @campus-tutor/web",
+    "dev:api": "npm run dev -w @campus-tutor/api",
+    "lint": "npm run lint --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "build": "npm run build --workspaces"
+  }
+}

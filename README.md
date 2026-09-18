@@ -1,0 +1,52 @@
+# 腰旗橄榄球与大学生家教平台
+
+Next.js Web 应用、NestJS API 和 PostgreSQL 连接。平台面向热爱体育的孩子和家长，希望孩子坚持腰旗训练时也能得到需要的学习支持。第一版提供腰旗橄榄球训练和大学生学科辅导两项可分别预约的服务。家长可查看已审核老师的院校、学历、擅长科目和腰旗经历；已实现手机号验证码登录／注册、老师入驻与管理员审核、双方处理预约，以及站内通知。
+
+## 本地运行
+
+需要 Node.js、npm 和 PostgreSQL。先执行 `npm install`。将 `apps/api/.env.example` 复制为 `apps/api/.env`，按本地数据库修改 `DATABASE_URL` 和 `OTP_SECRET`；然后执行 `npm run db:migrate -w @campus-tutor/api`，再分别运行 `npm run dev:web` 和 `npm run dev:api`。不配置数据库时，API 仍可启动，但目录、登录和数据库健康检查无法使用。
+
+本地测试验证码需要同时设置 `NODE_ENV=development` 和 `SMS_MODE=console`，验证码只会写入 API 终端日志。正式环境设置 `NODE_ENV=production`、`SMS_MODE=aliyun`，并配置阿里云 AccessKey、短信签名和模板；控制台模式在生产环境不可用。登录页仅支持中国大陆手机号。
+
+老师申请要求上传 JPG 或 PNG 在校证明（每张不超过 5MB）；体育资质证明可选。文件保存在 `PRIVATE_UPLOAD_DIR` 指定的私有目录，默认位于 API 工作目录下的 `data/private-uploads`，不会由 Web 应用公开提供。管理员登录后可在审核页查看申请资料和证明文件，选择通过、退回修改或拒绝。通过后老师进入公开目录。部署时应使用持久化、受限访问的存储，并备份证明文件。
+
+首次设置管理员：先用目标手机号登录一次，之后由有数据库连接权限的操作员执行 `npm run admin:grant -w @campus-tutor/api -- <手机号>`。此脚本只为已存在且启用的账号添加管理员角色。
+
+管理员可在“服务管理”下架或重新上架腰旗橄榄球、学科家教。第一版不按数学、语文等科目拆分服务；老师在资料中填写擅长科目，家长预约家教时需写明希望辅导的科目与目标。旧项目的预约记录保留，但不再接受新预约。
+
+家长可在老师详情页选择课程并提交预约请求，填写上课时间、学生年龄、区域和备注。请求价格、课时和家长在场要求按提交时课程信息保存；家长可在“我的预约”取消未确认的请求，也可在开课前取消已确认的课程。老师可在“老师预约”查看家长需求、确认或填写原因拒绝；同一老师不能确认时间重叠的课程。短信／邮件通知和支付将在后续功能中接入。
+预约提交、家长取消、老师确认或拒绝会生成站内通知。管理员处理老师入驻或公开资料修改申请后，老师也会收到通过、退回或拒绝通知，并可前往对应页面查看结果和审核反馈。登录后导航显示未读数量；通知页可逐条或全部标为已读。当前为站内轮询，不发送短信或邮件。
+
+通过审核的老师可在“接单设置”暂停或恢复接收新预约。暂停后公开目录暂时不显示该老师，已有预约仍保留并可处理。
+
+已入驻老师可提交服务区域和个人介绍修改申请。审核期间原公开资料继续展示，管理员通过后更新；退回或拒绝时老师可按反馈重新提交。本功能暂不修改课程与价格。
+已入驻老师也可单独提交课程项目、时长、价格、适合年龄和体育教学要求的调整申请。管理员通过后才更新公开可约课程；原有预约及价格快照保留。体育课程需填写运动经历，可补充体育资质证明。
+
+老师如无法履行已确认课程，可在开课前填写原因取消；家长会在预约记录和站内通知中看到结果。开课后不能在线取消。
+
+课程结束后，老师可将已确认的预约标记为完成。家长会在预约记录中看到完成时间，并收到站内通知。课后评价暂不在 MVP 范围内。
+
+- Web：`http://localhost:3000`
+- API：`http://localhost:3001/api/health`
+- 数据库连通性：`http://localhost:3001/api/health/database`（需要已配置并启动 PostgreSQL）
+- 老师目录：`http://localhost:3000/teachers`
+- 手机号登录：`http://localhost:3000/login`
+- 老师入驻申请：`http://localhost:3000/teach`
+- 我的预约：`http://localhost:3000/bookings`
+- 老师预约：`http://localhost:3000/teacher-bookings`
+- 接单设置：`http://localhost:3000/teacher-settings`
+- 公开资料修改：`http://localhost:3000/teacher-profile`
+- 课程项目调整：`http://localhost:3000/teacher-offerings`
+- 站内通知：`http://localhost:3000/notifications`
+- 管理员审核：`http://localhost:3000/admin`
+- 服务管理：`http://localhost:3000/admin/subjects`
+- 若 API 不在本机 3001 端口运行，在 Web 进程设置 `API_INTERNAL_URL`
+
+## 检查
+
+`npm run lint`、`npm run typecheck`、`npm run build`。
+
+## 目录
+
+- `apps/web`：家长端页面与基础布局
+- `apps/api`：HTTP API、数据库连接和目录迁移

@@ -1,0 +1,36 @@
+{
+  "name": "@campus-tutor/api",
+  "private": true,
+  "scripts": {
+    "dev": "nest start --watch",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "build": "nest build",
+    "start": "node dist/main.js",
+    "db:migrate": "node db/migrate.mjs",
+    "admin:grant": "node db/grant-admin.mjs"
+  },
+  "dependencies": {
+    "@alicloud/credentials": "^2.4.7",
+    "@alicloud/dysmsapi20170525": "^4.6.0",
+    "@alicloud/openapi-client": "^0.4.15",
+    "@nestjs/common": "^12.0.3",
+    "@nestjs/core": "^12.0.3",
+    "@nestjs/platform-express": "^12.0.3",
+    "dotenv": "^17.4.2",
+    "pg": "^8.23.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@nestjs/cli": "^12.0.3",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.2.0",
+    "@types/node": "^22.20.3",
+    "@types/pg": "^8.23.1",
+    "eslint": "^9.39.5",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.70.0"
+  }
+}
