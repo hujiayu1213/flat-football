@@ -96,7 +96,7 @@ export default function TeachPage() {
   return <div className="page-wrap application-page">
     <div className="page-heading"><p className="eyebrow">腰旗教练与大学生家教入驻</p><h1>成为老师</h1><p>选择腰旗训练、学科家教或同时提供两种服务，填写学历与擅长方向后提交审核。</p></div>
     {view === "loading" && <p className="notice" role="status">正在读取申请状态…</p>}
-    {view === "login" && <div className="notice"><p>请先登录，再填写入驻申请。</p><Link className="button button-primary" href="/login">手机号登录</Link></div>}
+    {view === "login" && <div className="notice"><p>请先登录，再填写入驻申请。</p><Link className="button button-primary" href="/teacher/login">老师登录</Link></div>}
     {view === "error" && <p className="notice" role="alert">{error}</p>}
     {view === "submitted" && <div className="notice"><h2>申请已提交</h2><p>资料正在等待管理员审核。审核结果会显示在这里。</p></div>}
     {view === "approved" && <div className="notice"><h2>审核已通过</h2><p>你现在可以管理预约、公开资料和教学项目。</p><Link className="button button-primary" href="/teacher-profile">修改公开资料</Link> <Link className="button button-secondary" href="/teacher-offerings">调整教学项目</Link></div>}

@@ -32,6 +32,7 @@ Next.js Web 应用、NestJS API 和 PostgreSQL 连接。平台面向热爱体育
 - 数据库连通性：`http://localhost:3001/api/health/database`（需要已配置并启动 PostgreSQL）
 - 老师目录：`http://localhost:3000/teachers`
 - 手机号登录：`http://localhost:3000/login`
+- 老师登录／入驻：`http://localhost:3000/teacher/login`
 - 老师入驻申请：`http://localhost:3000/teach`
 - 我的预约：`http://localhost:3000/bookings`
 - 老师预约：`http://localhost:3000/teacher-bookings`

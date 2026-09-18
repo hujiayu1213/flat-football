@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 
-export function LoginForm({ adminMode = false }: { adminMode?: boolean }) {
+export function LoginForm({ adminMode = false, teacherMode = false }: { adminMode?: boolean; teacherMode?: boolean }) {
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [sent, setSent] = useState(false);
@@ -11,6 +11,7 @@ export function LoginForm({ adminMode = false }: { adminMode?: boolean }) {
   const [error, setError] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isTeacher, setIsTeacher] = useState(false);
 
   async function submit(path: string, payload: object) {
     const response = await fetch(`/api/auth/${path}`, {
@@ -39,6 +40,7 @@ export function LoginForm({ adminMode = false }: { adminMode?: boolean }) {
       const response = await submit("verify-code", { phone, code });
       const result = await response.json() as { user: { roles: string[] } };
       setIsAdmin(result.user.roles.includes("admin"));
+      setIsTeacher(result.user.roles.includes("teacher"));
       setLoggedIn(true);
       window.dispatchEvent(new Event("auth-changed"));
     } catch (cause) { setError(cause instanceof Error ? cause.message : "登录失败"); }
@@ -46,17 +48,18 @@ export function LoginForm({ adminMode = false }: { adminMode?: boolean }) {
   }
 
   return <div className="page-wrap login-page"><div className="login-card">
-    <p className="eyebrow">{adminMode ? "平台管理" : "家长与大学生老师"}</p>
-    <h1>{adminMode ? "管理员登录" : "手机号登录"}</h1>
+    <p className="eyebrow">{adminMode ? "平台管理" : teacherMode ? "大学生老师" : "家长与大学生老师"}</p>
+    <h1>{adminMode ? "管理员登录" : teacherMode ? "老师登录／入驻" : "手机号登录"}</h1>
     {loggedIn ? <div className="login-success">
       <p>登录成功。</p>
       {adminMode && !isAdmin ? <p className="form-error" role="alert">当前手机号尚未开通管理员权限。请由项目维护者授权后重新登录。</p> :
-        <Link className="button button-primary" href={isAdmin ? "/admin" : "/teach"}>
-          {isAdmin ? "进入管理后台" : "继续申请成为老师"}
+        <Link className="button button-primary" href={adminMode ? "/admin" : teacherMode && isTeacher ? "/teacher-bookings" : "/teach"}>
+          {adminMode ? "进入管理后台" : teacherMode && isTeacher ? "查看老师预约" : "查看老师入驻"}
         </Link>}
     </div> : <>
       <p className="login-description">{adminMode
         ? "使用已开通管理员权限的手机号登录，审核老师身份、服务和价格。"
+        : teacherMode ? "使用手机号登录。首次登录后可填写入驻资料；已通过审核的老师可管理预约。"
         : "首次验证手机号时会自动创建账号。"}</p>
       <form onSubmit={sent ? verifyCode : sendCode}>
         <label>手机号<input type="tel" inputMode="numeric" autoComplete="tel" value={phone}
