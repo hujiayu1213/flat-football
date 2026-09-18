@@ -95,6 +95,12 @@ h1 { margin: 0; font-size: clamp(36px, 5vw, 60px); line-height: 1.16; letter-spa
 .review-note { padding: 16px; background: #fff7e5; border-radius: 8px; color: #6f510b; }
 @media (max-width: 640px) { .application-page { padding-block: 38px 64px; } .form-section { padding: 22px; } .form-grid { grid-template-columns: 1fr; } }
 .admin-page { padding-block: 60px 96px; }
+.admin-shortcuts { display: grid; gap: 12px; margin-top: 24px; }
+.admin-shortcuts a { display: grid; gap: 5px; padding: 20px 24px; border: 1px solid #cfdfd8; border-radius: 14px; background: #f3f9f5; color: #17584f; text-decoration: none; }
+.admin-shortcuts span { color: #506176; font-size: 14px; }
+.admin-service-section { margin-top: 36px; }
+.admin-section-heading h2 { margin: 0 0 8px; font-size: 24px; }
+.admin-section-heading p { margin: 0; color: #506176; line-height: 1.6; }
 .admin-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 30px 0 20px; }
 .admin-tabs button { padding: 9px 16px; border: 1px solid #cfdbd8; border-radius: 8px; background: white; color: #506176; cursor: pointer; }
 .admin-tabs button.active { background: #176b63; border-color: #176b63; color: white; }

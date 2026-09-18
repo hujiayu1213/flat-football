@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   async function submit(path: string, payload: object) {
     const response = await fetch(`/api/auth/${path}`, {
@@ -33,14 +34,27 @@ export default function LoginPage() {
   async function verifyCode(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true); setError("");
-    try { await submit("verify-code", { phone, code }); setLoggedIn(true); window.dispatchEvent(new Event("auth-changed")); }
+    try {
+      const response = await fetch("/api/auth/verify-code", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        credentials: "same-origin", body: JSON.stringify({ phone, code }),
+      });
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({})) as { message?: string };
+        throw new Error(typeof result.message === "string" ? result.message : "登录失败");
+      }
+      const result = await response.json() as { user: { roles: string[] } };
+      setIsAdmin(result.user.roles.includes("admin"));
+      setLoggedIn(true);
+      window.dispatchEvent(new Event("auth-changed"));
+    }
     catch (cause) { setError(cause instanceof Error ? cause.message : "登录失败"); }
     finally { setBusy(false); }
   }
 
   return <div className="page-wrap login-page"><div className="login-card">
     <p className="eyebrow">家长与大学生老师</p><h1>手机号登录</h1>
-    {loggedIn ? <div className="login-success"><p>登录成功。</p><Link className="button button-primary" href="/teach">继续申请成为老师</Link></div> : <>
+    {loggedIn ? <div className="login-success"><p>登录成功。</p><Link className="button button-primary" href={isAdmin ? "/admin/subjects" : "/teach"}>{isAdmin ? "进入服务管理与审核" : "继续申请成为老师"}</Link></div> : <>
       <p className="login-description">首次验证手机号时会自动创建账号。</p>
       <form onSubmit={sent ? verifyCode : sendCode}>
         <label>手机号<input type="tel" inputMode="numeric" autoComplete="tel" value={phone} onChange={(event) => { setPhone(event.target.value); setSent(false); setCode(""); }} pattern="1[3-9][0-9]{9}" required maxLength={11} placeholder="中国大陆手机号" /></label>

@@ -42,14 +42,14 @@ type Decision = "approved" | "changes_requested" | "rejected";
 export class AdminService {
   constructor(private readonly database: DatabaseService, private readonly files: PrivateFilesService) {}
 
-  async list(status: string): Promise<object[]> {
+  async list(status: string, type?: string): Promise<object[]> {
     const rows = await this.database.query<ReviewRow>(
       `SELECT v.id, v.type, v.status, v.submitted_at, tp.display_name, tp.school, tp.service_area, u.phone
        FROM verifications v
        JOIN teacher_profiles tp ON tp.id = v.teacher_profile_id
        JOIN users u ON u.id = tp.user_id
-       WHERE v.status = $1
-       ORDER BY v.submitted_at ASC, v.id ASC LIMIT 100`, [status],
+       WHERE v.status = $1 AND ($2::text IS NULL OR v.type = $2)
+       ORDER BY v.submitted_at ASC, v.id ASC LIMIT 100`, [status, type ?? null],
     );
     return rows.map((row) => ({ id: row.id, type: row.type, status: row.status, submittedAt: row.submitted_at,
       displayName: row.display_name, school: row.school, serviceArea: row.service_area, phone: row.phone }));

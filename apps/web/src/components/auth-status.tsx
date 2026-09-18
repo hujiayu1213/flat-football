@@ -46,5 +46,5 @@ export function AuthStatus() {
     if (response.ok) { setUser(null); setUnreadCount(0); }
   }
 
-  return user ? <span className="auth-status"><Link href="/notifications">通知{unreadCount > 0 ? `（${unreadCount}）` : ""}</Link>{user.roles.includes("teacher") && <><Link href="/teacher-bookings">老师预约</Link><Link href="/teacher-settings">接单设置</Link><Link href="/teacher-profile">修改资料</Link><Link href="/teacher-offerings">调整课程</Link></>}{user.roles.includes("admin") && <Link href="/admin">管理后台</Link>}<span>{user.phone.slice(0, 3)}****{user.phone.slice(-4)}</span><button type="button" onClick={logout}>退出</button></span> : <Link href="/login">登录／注册</Link>;
+  return user ? <span className="auth-status"><Link href="/notifications">通知{unreadCount > 0 ? `（${unreadCount}）` : ""}</Link>{user.roles.includes("teacher") && <><Link href="/teacher-bookings">老师预约</Link><Link href="/teacher-settings">接单设置</Link><Link href="/teacher-profile">修改资料</Link><Link href="/teacher-offerings">调整课程</Link></>}{user.roles.includes("admin") && <><Link href="/admin">老师审核</Link><Link href="/admin/subjects">服务管理</Link></>}<span>{user.phone.slice(0, 3)}****{user.phone.slice(-4)}</span><button type="button" onClick={logout}>退出</button></span> : <Link href="/login">登录／注册</Link>;
 }

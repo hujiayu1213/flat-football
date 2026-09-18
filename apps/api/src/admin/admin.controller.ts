@@ -45,11 +45,15 @@ export class AdminController {
   }
 
   @Get("verifications")
-  async list(@Req() request: Request, @Query("status") status?: string): Promise<object[]> {
+  async list(@Req() request: Request, @Query("status") status?: string,
+    @Query("type") type?: string): Promise<object[]> {
     await this.requireAdmin(request);
     const selected = status ?? "submitted";
     if (!["submitted", "approved", "changes_requested", "rejected"].includes(selected)) throw new BadRequestException("审核状态无效");
-    return this.admin.list(selected);
+    if (type && !["initial", "profile_change", "qualification_change"].includes(type)) {
+      throw new BadRequestException("申请类型无效");
+    }
+    return this.admin.list(selected, type);
   }
 
   @Get("verifications/:id")

@@ -23,7 +23,7 @@ interface ReviewDetail extends ReviewSummary {
   };
   files: Array<{ id: string; kind: string; mimeType: string; byteSize: number }>;
 }
-type View = "loading" | "unauthorized" | "ready" | "error";
+type View = "loading" | "login" | "unauthorized" | "ready" | "error";
 const statuses = [
   { value: "submitted", label: "待审核" }, { value: "approved", label: "已通过" },
   { value: "changes_requested", label: "已退回" }, { value: "rejected", label: "已拒绝" },
@@ -43,7 +43,8 @@ export default function AdminPage() {
     async function load() {
       try {
         const me = await fetch("/api/auth/me", { credentials: "same-origin" });
-        if (!me.ok) { setView("unauthorized"); return; }
+        if (me.status === 401) { setView("login"); return; }
+        if (!me.ok) throw new Error();
         const account = await me.json() as { roles: string[] };
         if (!account.roles.includes("admin")) { setView("unauthorized"); return; }
         const subjectsResponse = await fetch("/api/subjects");
@@ -97,11 +98,13 @@ export default function AdminPage() {
   }
 
   return <div className="page-wrap admin-page">
-    <div className="page-heading"><p className="eyebrow">管理后台</p><h1>老师资料审核</h1><p>核对入驻、公开资料及服务调整申请，记录审核结论。</p><Link className="back-link" href="/admin/subjects">管理服务 →</Link></div>
+    <div className="page-heading"><p className="eyebrow">管理后台</p><h1>老师资料审核</h1><p>核对入驻与公开资料申请，记录审核结论。服务与价格调整可在服务管理页单独处理。</p></div>
     {view === "loading" && <p className="notice">正在读取管理员权限…</p>}
-    {view === "unauthorized" && <p className="notice" role="alert">此页面需要管理员账号。</p>}
+    {view === "login" && <p className="notice">请先 <Link href="/login">登录管理员账号</Link>，再返回此页审核。</p>}
+    {view === "unauthorized" && <p className="notice" role="alert">当前账号没有管理员权限。请使用已授权的管理员账号登录。</p>}
     {view === "error" && <p className="notice" role="alert">暂时无法加载后台，请稍后再试。</p>}
     {view === "ready" && <>
+      <div className="admin-shortcuts"><Link href="/admin/subjects"><strong>服务管理与审核 →</strong><span>处理老师服务与价格调整；管理腰旗和家教上架状态</span></Link></div>
       <div className="admin-tabs" role="group" aria-label="审核状态">{statuses.map((item) => <button key={item.value} type="button" className={status === item.value ? "active" : ""} onClick={() => { setStatus(item.value); setDetail(null); setMessage(""); }}>{item.label}</button>)}</div>
       {message && <p className="notice" role="status">{message}</p>}
       <div className="admin-layout"><section className="admin-queue" aria-label="审核申请列表">
